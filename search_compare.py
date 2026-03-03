@@ -3,17 +3,15 @@ import random
 
 
 def get_me_random_list(n):
-    """Generate list of n elements in random order
-    
-    :params: n: Number of elements in the list
-    :returns: A list with n elements in random order
-    """
     a_list = list(range(n))
     random.shuffle(a_list)
     return a_list
 
 
 def sequential_search(a_list, item):
+
+    start = time.time()
+
     pos = 0
     found = False
 
@@ -23,13 +21,18 @@ def sequential_search(a_list, item):
         else:
             pos = pos + 1
 
-    return found
+    end = time.time()
+    return found, end - start
 
 
 def ordered_sequential_search(a_list, item):
+
+    start = time.time()
+
     pos = 0
     found = False
     stop = False
+
     while pos < len(a_list) and not found and not stop:
         if a_list[pos] == item:
             found = True
@@ -39,16 +42,21 @@ def ordered_sequential_search(a_list, item):
             else:
                 pos = pos + 1
 
-    return found
+    end = time.time()
+    return found, end - start
 
 
-def binary_search_iterative(a_list,item):
+def binary_search_iterative(a_list, item):
+
+    start = time.time()
+
     first = 0
-
     last = len(a_list) - 1
     found = False
+
     while first <= last and not found:
         midpoint = (first + last) // 2
+
         if a_list[midpoint] == item:
             found = True
         else:
@@ -57,37 +65,69 @@ def binary_search_iterative(a_list,item):
             else:
                 first = midpoint + 1
 
-    return found
-    
-    
-def binary_search_recursive(a_list,item):
-    if len(a_list) == 0:
-        return False
-    else:
-        midpoint = len(a_list) // 2
-        if a_list[midpoint] == item:
+    end = time.time()
+    return found, end - start
+
+
+def binary_search_recursive(a_list, item):
+
+    start = time.time()
+
+    def helper(lst, item):
+        if len(lst) == 0:
+            return False
+
+        midpoint = len(lst) // 2
+
+        if lst[midpoint] == item:
             return True
         else:
-            if item < a_list[midpoint]:
-                return binary_search_recursive(a_list[:midpoint], item)
+            if item < lst[midpoint]:
+                return helper(lst[:midpoint], item)
             else:
-                return binary_search_recursive(a_list[midpoint + 1:], item)
+                return helper(lst[midpoint + 1:], item)
+
+    found = helper(a_list, item)
+
+    end = time.time()
+    return found, end - start
 
 
 if __name__ == "__main__":
-    """Main entry point"""
-    the_size = 500
 
-    total_time = 0
-    for i in range(100):
-        mylist = get_me_random_list(the_size)
-        # sorting is not needed for sequential search.
-        mylist = sorted(mylist)
+    sizes = [500, 1000, 5000]
+    trials = 100
+    target = 99999999
 
-        start = time.time()
-        check = binary_search_iterative(mylist, 99999999)
-        time_spent = time.time() - start
-        total_time += time_spent
+    for size in sizes:
 
-    avg_time = total_time / 100
-    print(f"Binary Search Iterative took {avg_time:10.7f} seconds to run, on average for a list of {the_size} elements")
+        seq_total = 0
+        ord_total = 0
+        bin_iter_total = 0
+        bin_rec_total = 0
+
+        for i in range(trials):
+
+            mylist = get_me_random_list(size)
+
+            # Sequential search (unsorted)
+            result, time_spent = sequential_search(mylist, target)
+            seq_total += time_spent
+
+            # Sort list for ordered and binary search
+            sorted_list = sorted(mylist)
+
+            result, time_spent = ordered_sequential_search(sorted_list, target)
+            ord_total += time_spent
+
+            result, time_spent = binary_search_iterative(sorted_list, target)
+            bin_iter_total += time_spent
+
+            result, time_spent = binary_search_recursive(sorted_list, target)
+            bin_rec_total += time_spent
+
+        print(f"\nList size: {size}")
+        print(f"Sequential Search took {seq_total/trials:10.7f} seconds to run, on average")
+        print(f"Ordered Sequential Search took {ord_total/trials:10.7f} seconds to run, on average")
+        print(f"Binary Search Iterative took {bin_iter_total/trials:10.7f} seconds to run, on average")
+        print(f"Binary Search Recursive took {bin_rec_total/trials:10.7f} seconds to run, on average")
